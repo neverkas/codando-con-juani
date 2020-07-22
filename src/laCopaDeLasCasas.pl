@@ -14,4 +14,3 @@ prohibido(lugar(bosque), 50).
 prohibido(lugar(biblioteca), 10).
 prohibido(lugar(tercerPiso), 75).
 prohibido(fueraDeCama, 50).
-
