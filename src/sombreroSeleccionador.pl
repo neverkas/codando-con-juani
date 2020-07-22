@@ -1,17 +1,15 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Parte 1 - Sombrero Seleccionador
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-mago(ron, humana).
-mago(erik,elfo).
-mago(bonemon, tigre).
-amistoso(ron).
-amistoso(erik).
-amistoso(bonemon).
+
 
 
 mago(harry, mestiza).
 mago(draco, puro).
 mago(hermione, impura).
+mago(ron, humana).
+mago(erik,elfo).
+mago(bonemon, tigre).
 
 casa(gryffindor).
 casa(slytherin).
@@ -24,6 +22,9 @@ odia(draco, hufflepuff).
 corajudo(harry).
 
 amistoso(harry).
+amistoso(ron).
+amistoso(erik).
+amistoso(bonemon).
 
 orgulloso(harry).
 orgulloso(draco).
