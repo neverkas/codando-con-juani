@@ -111,7 +111,8 @@ puntosMago(Mago, Puntos):-
     esMago(Mago),
     puntosMagoNegativo(Mago, Negativo),
     puntosMagoPositivo(Mago, Positivo),
-    Puntos is Positivo - Negativo.
+    puntosPregunta(Mago, Positivo2),
+    Puntos is Positivo + Positivo2 - Negativo.
 
 puntosMagoNegativo(Mago, Puntos):-
     findall(Punto, accion(_,Mago,Punto),PuntosLista),
@@ -131,14 +132,23 @@ puntajeCasa(Casa, Puntos):-
 % hace(accion(fueraDeCama, 50), harry).
 % esDe(draco, slytherin).
 
+% puntos(Mago)
+% hace(accion(_, Puntos), Mago)
+/*
+puntos(Accion, Mago, PuntosPorAccion):-
+    hace( accion(Accion, Puntos), Mago),
+    mala(Accion),
+    PuntosPorAccion is Puntos*(-1).
+*/
+
 mago(Mago):- esDe(Mago,_).
 
 puntajev2(Casa, PuntosTotales):-
     casa(Casa), mago(Mago),
-    findall(Puntos, (esDe(Mago, Casa) ,hace(accion(_, Puntos), Mago)) , PuntosMagos),
+    findall(Puntos, (esDe(Mago, Casa) ,hace(accion(_, Puntos), Mago) ) , PuntosMagos),
     sum_list(PuntosMagos, PuntosTotales). 
     
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 /*
 3. Saber cuál es la casa ganadora de la copa, que se verifica para aquella casa que haya obtenido unacantidad mayor de puntos que todas las otras.
@@ -157,3 +167,29 @@ y cómo hacer levitar una pluma, de dificultad 25, realizadapor el profesor Flit
 Modificar lo que sea necesario para que este agregado funcione con lo desarrollado hasta ahora, teniendo en cuenta que los puntos que se otorgan 
 equivalen a la dificultad de la pregunta, a menos que la hayahecho Snape, que da la mitad de puntos en relación a la dificultad de la pregunta.
 */
+
+respuesta(harry, pregunta("Chiva", 45, snape)).
+respuesta(harry, pregunta("Chiva", 15, silin)).
+respuesta(harry, pregunta("Chiva", 25, silin)).
+respuesta(draco, pregunta("Chiva", 30, snape)).
+respuesta(ron, pregunta("Chiva", 60, silin)).
+respuesta(ron, pregunta("Chiva", 10, silin)).
+respuesta(hermione, pregunta("Chiva", 15, silin)).
+respuesta(hermione, pregunta("Chiva", 25, snape)).
+respuesta(luna, pregunta("Chiva", 35, silin)).
+respuesta(luna, pregunta("Chiva", 80, silin)).
+
+respondio(Mago, pregunta(Pregunta, Dificultad, Profesor)):-
+    esMago(Mago),
+    respuesta(Mago, pregunta(Pregunta,Dificultad, Profesor)),
+    Profesor \= snape.
+
+puntosPregunta(Mago, Puntos):-
+    esMago(Mago),
+    findall(Punto,(respuesta(Mago,pregunta(_,Punto,Profesor)),Profesor \= snape),PuntosLista),
+    sum_list(PuntosLista,Puntos).
+
+puntosPregunta2(Mago, Puntos):-
+    esMago(Mago),
+    findall(Punto,(respuesta(Mago,pregunta(_,Punto,snape)),PuntosLista),
+    sum_list(PuntosLista,Puntos).
