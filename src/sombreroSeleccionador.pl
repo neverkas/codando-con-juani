@@ -65,8 +65,12 @@ puedeQuedar(Mago, Casa):-
     not(odia(Mago, Casa)).
 puedeQuedar(hermione, gryffindor).
 
-cadenaDeAmistades([Mago]):-
-    amistoso(Mago).
+cadenaDeAmistades([Mago,OtroMago]):-
+    amistoso(Mago),
+    amistoso(OtroMago),
+    Mago \= OtroMago,
+    puedeQuedar(Mago, Casa),
+    puedeQuedar(OtroMago, Casa).
 cadenaDeAmistades([Mago,OtroMago|Magos]):-
     amistoso(Mago),
     amistoso(OtroMago),
@@ -74,7 +78,6 @@ cadenaDeAmistades([Mago,OtroMago|Magos]):-
     puedeQuedar(Mago, Casa),
     puedeQuedar(OtroMago, Casa),
     cadenaDeAmistades([OtroMago|Magos]).  
-
 
 /*Definir un predicado ​cadenaDeAmistades/1​ que se cumple para una lista de magos si todos ellos secaracterizan por ser amistosos y cada uno podría estar en la misma casa 
 que el siguiente. ​No hace faltaque sea inversible​, se consultará de forma individual.
