@@ -168,16 +168,16 @@ Modificar lo que sea necesario para que este agregado funcione con lo desarrolla
 equivalen a la dificultad de la pregunta, a menos que la hayahecho Snape, que da la mitad de puntos en relación a la dificultad de la pregunta.
 */
 
-respuesta(harry, pregunta("Chiva", 45, snape)).
-respuesta(harry, pregunta("Chiva", 15, silin)).
-respuesta(harry, pregunta("Chiva", 25, silin)).
-respuesta(draco, pregunta("Chiva", 30, snape)).
-respuesta(ron, pregunta("Chiva", 60, silin)).
-respuesta(ron, pregunta("Chiva", 10, silin)).
-respuesta(hermione, pregunta("Chiva", 15, silin)).
-respuesta(hermione, pregunta("Chiva", 25, snape)).
-respuesta(luna, pregunta("Chiva", 35, silin)).
-respuesta(luna, pregunta("Chiva", 80, silin)).
+respuesta(harry, pregunta("Testing", 45, snape)).
+respuesta(harry, pregunta("Testing", 15, silin)).
+respuesta(harry, pregunta("Testing", 25, silin)).
+respuesta(draco, pregunta("Testing", 30, snape)).
+respuesta(ron, pregunta("Testing", 60, silin)).
+respuesta(ron, pregunta("Testing", 10, silin)).
+respuesta(hermione, pregunta("Testing", 15, silin)).
+respuesta(hermione, pregunta("Testing", 25, snape)).
+respuesta(luna, pregunta("Testing", 35, silin)).
+respuesta(luna, pregunta("Testing", 80, silin)).
 
 respondio(Mago, pregunta(Pregunta, Dificultad, Profesor)):-
     esMago(Mago),
@@ -185,11 +185,18 @@ respondio(Mago, pregunta(Pregunta, Dificultad, Profesor)):-
     Profesor \= snape.
 
 puntosPregunta(Mago, Puntos):-
+    preguntaNoSnape(Mago,PuntoNoSnape),
+    preguntaSnape(Mago,PuntoSnape),
+    Puntos is PuntoNoSnape + PuntoSnape.
+
+preguntaNoSnape(Mago, Puntos):-
     esMago(Mago),
     findall(Punto,(respuesta(Mago,pregunta(_,Punto,Profesor)),Profesor \= snape),PuntosLista),
     sum_list(PuntosLista,Puntos).
 
-puntosPregunta2(Mago, Puntos):-
+preguntaSnape(Mago, Puntos):-
     esMago(Mago),
-    findall(Punto,(respuesta(Mago,pregunta(_,Punto,snape)),PuntosLista),
-    sum_list(PuntosLista,Puntos).
+    findall(Punto,respuesta(Mago,pregunta(_,Punto,snape)), PuntosLista),
+    sum_list(PuntosLista,PuntosLimpios),
+    Puntos is PuntosLimpios / 2.
+    
