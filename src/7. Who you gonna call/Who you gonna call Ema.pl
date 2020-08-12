@@ -3,6 +3,8 @@ Sabemos cuáles son las herramientas requeridas para realizar una tarea de limpi
 Además, para las aspiradoras se indica cuál es la potencia mínima requerida para la tarea en cuestión.
 */
 herramientasRequeridas(ordenarCuarto, [aspiradora(100), trapeador, plumero]).
+herramientasRequeridas(ordenarCuarto, [escoba]).
+
 herramientasRequeridas(limpiarTecho, [escoba, pala]).
 herramientasRequeridas(cortarPasto, [bordedadora]).
 herramientasRequeridas(limpiarBanio, [sopapa, trapeador]).
@@ -26,6 +28,22 @@ Esto será cierto
 Nota: No se pretende que sea inversible respecto a la herramienta requerida.
 */
 % potenciaDe(aspiradora(Potencia), Potencia).
+herramientasRequeridas(ordenarCuarto2, [[escoba, aspiradora(100), secadora, trapo], trapeador, plumero]).
+
+%% OBSERVACIONES JUANI EL GRANDE (0.0)
+% Hechos nuevos no, porque es disruptivo, teniendo que re hacer toda la parte del findall en todasLasHerramientasRequeridas. 
+% Y haciendo una repeticion de la logica en cuanto al hecho
+% Functor no se puede porque no tenes una cantidad fija de herramientas alternas que se puedan usar,
+% pues yo puedo tener escoba y aspiradora, o, escoba, aspiradora y secadora. Cuando trabajo con functores se la cantidad que tengo que manejar, el problema radica aca:
+
+/*
+satisface(Persona, alternativa(??????)):- Justamente no se la cantidad de alternativas que pueden haber, ya que pueden ser 2 o 10.
+satisface(Persona, alternativa(Herramienta1, Herramienta2)):-
+satisface(Persona, alternativa(Herramienta1, Herramienta2, Herramienta3)):-
+satisface(Persona, alternativa(Herramienta1, Herramienta2, Herramienta3, Herramienta4)):-
+asi infinitamente
+*/
+%Por lo tanto la mejor opcion es realizar una lista de alternativas, ya que solo requiere AÑADIR un predicado a satisface REFERENCIA *1
 
 satisface(Persona, Herramienta):-
     tiene(Persona, Herramienta).
@@ -33,6 +51,11 @@ satisface(Persona, Herramienta):-
 satisface(Persona, aspiradora(PotenciaRequerida)):-
     tiene(Persona, aspiradora(Potencia)),
     Potencia >= PotenciaRequerida.
+
+satisface(Persona, Alternativas):- % REFERENCIA *1
+    member(Herramienta, Alternativas),
+    satisface(Persona, Herramienta). %Pues no usamos el predicado tiene porque la aspiradora es un caso aparte, por lo tanto volvemos a llamar a satisface, pero usara 
+%el primero o el segundo predicado porque son predicados que usan una unica herramienta, no volvera a este predicado (No recursivo aunque parezca lo contrario).
 
 /*
 Queremos saber si una persona puede realizar una tarea, que dependerá de las
@@ -46,9 +69,24 @@ puedeRealizar(Persona, Tarea):-
     tiene(Persona, Herramienta),
     tareaSegun(Herramienta, Tarea).
 
+ %herramientasRequeridas(ordenarCuarto, [aspiradora(100), trapeador, plumero]).
+ %herramientasRequeridas(ordenarCuarto, [escoba, trapeador, plumero]).
+
+
+/*
+todasLasHerramientasRequeridas(Tarea, TodasLasTareas):-
+    herramientasRequeridas(Tarea, _),
+
+    findall(
+        Tarea, 
+        (herramientasRequeridas(Tarea, Tareas), member(Tarea, Tareas)), 
+        TodasLasTareas
+    ).
+*/
 puedeRealizar(Persona, Tarea):-
     persona(Persona),
     herramientasRequeridas(Tarea, Herramientas),
+    %% todasLasHerramientasRequeridas(Tarea, Herramientas),
     forall(
         member(Herramienta, Herramientas),
         satisface(Persona, Herramienta)
@@ -68,16 +106,14 @@ cliente.
 Entonces lo que se le cobraría al cliente sería la suma del valor a cobrar por cada tarea,
 multiplicando el precio por los metros cuadrados de la tarea.
 */
+
 cobrar(Cliente, CuantoCobrar):-
     cliente(Cliente),
     findall(
-        Precio,
-        precioPorTarea(Cliente, Precio),
-        %(tareaPedida(Cliente, Tarea, Metros), precioPorMetro(Tarea, Metros, Precio)),
-        Precios
+        Precio, precioDeCadaTarea(Cliente, Precio), Precios
     ), sumlist(Precios, CuantoCobrar).
 
-precioPorTarea(Cliente, Precio):-
+precioDeCadaTarea(Cliente, Precio):-
     tareaPedida(Cliente, Tarea, Metros), 
     precioPorMetro(Tarea, Metros, Precio).
 
@@ -100,15 +136,43 @@ tareaPedida(fede, limpiarTecho, 500).
 tareaPedida(fede, cortarPasto, 900).
 tareaPedida(pepe, cortarPasto, 100).
 
+precioPorTarea(Nombre, tarea(Nombre, Precio)):-
+    % tareaPedida(_, Nombre, _),
+    precio(Nombre, Precio).
+
 cliente(Cliente):- tareaPedida(Cliente, _, _).
 
 /*
-Finalmente necesitamos saber "quiénes aceptarían el pedido de un cliente".
+5. Finalmente necesitamos saber "quiénes aceptarían el pedido de un cliente".
 - Un integrante acepta el pedido cuando 
     - puede realizar todas las tareas del pedido 
     - y además está dispuesto a aceptarlo.
+*/
+
+pedido(Cliente, Pedido):-
+    cliente(Cliente),
+    findall(
+        Tarea,
+        (tareaPedida(Cliente, NombreTarea, _), precioPorTarea(NombreTarea, Tarea)),
+        Pedido
+    ).
+
+
+aceptariaPedido(Integrante, Cliente):-
+    puedeRealizarTareasDe(Integrante, Cliente).
+%    acepta(Integrante, Cliente).
+
+puedeRealizarTareasDe(Integrante, Cliente):-
+    persona(Integrante),
+    pedido(Cliente, Tareas),
+    forall(
+        member(tarea(NombreTarea, _), Tareas), puedeRealizar(Integrante, NombreTarea)
+        %member(Tarea, Tareas), puedeRealizar(Integrante, Tarea)
+    ).
+
+/*
 - Sabemos que Ray sólo acepta pedidos que no incluyan limpiar techos,
-- Winston sólo acepta pedidos que paguen más de $500,
+- Winston sólo acepta pedidos que paguen más de $500, (caras)
 - Egon está dispuesto a aceptar pedidos que no tengan tareas complejas
 - y Peter está dispuesto a aceptar cualquier pedido.
 
@@ -116,17 +180,62 @@ Decimos que una tarea es compleja si requiere más de dos herramientas.
 Además la limpieza de techos siempre es compleja.
 */
 
-aceptariaPedido(Integrante, Cliente):-
-    puedeRealizarTareasDe(Integrante, Cliente),
-    acepta(Integrante, Pedido).
-
-% tareaPedida(fede, limpiarTecho, 500).
-% tarea(Tarea):- 
-
 acepta(ray, Pedido):-
-    tareasDe(Pedido, Tareas),
-    not(member(limpiarTecho, Tareas)).
+    pedido(Pedido, Tareas),
+    not(member(tarea(limpiarTecho, _), Tareas)).
 
 acepta(winston, Pedido):-
-    tareasDe(Pedido, Tareas),
-    
+    pedido(Pedido, Tareas),
+    precioTotalDe(Tareas, Precio),
+    Precio > 500.
+
+precioTotalDe(Tareas, PrecioTotal):-
+    findall(
+        Precio,
+        member(tarea(_, Precio), Tareas),
+        Precios
+    ), sumlist(Precios, PrecioTotal).
+
+acepta(peter, Pedido):-
+    pedido(Pedido, _).
+
+/*
+herramientasRequeridas(ordenarCuarto, [aspiradora(100), trapeador, plumero]).
+herramientasRequeridas(limpiarTecho, [escoba, pala]).
+herramientasRequeridas(cortarPasto, [bordedadora]).
+herramientasRequeridas(limpiarBanio, [sopapa, trapeador]).
+herramientasRequeridas(encerarPisos, [lustradpesora, cera, aspiradora(300)]).
+
+6. Necesitamos agregar la posibilidad de tener herramientas reemplazables, que incluyan
+2 herramientas de las que pueden tener los integrantes como alternativas, para que
+puedan usarse como un requerimiento para poder llevar a cabo una tarea.
+*/
+
+/*
+a. Mostrar cómo modelarías este nuevo tipo de información modificando el
+hecho de herramientasRequeridas/2 para que ordenar un cuarto pueda
+realizarse tanto con una aspiradora de 100 de potencia como con una escoba,
+además del trapeador y el plumero que ya eran necesarios.
+*/
+
+%% herramientasRequeridas(ordenarCuarto, [aspiradora(100), trapeador, plumero]).
+%% herramientasRequeridas(ordenarCuarto, [escoba]).
+
+%herramientasRequeridas2(ordenarCuarto, aspiradora(100)).
+%herramientasRequeridas2(ordenarCuarto, escoba).
+%herramientasRequeridas2(ordenarCuarto, trapeador).
+%herramientasRequeridas2(ordenarCuarto, plumero).
+
+/*
+b. Realizar los cambios agregados necesarios a los predicados definidos en los
+puntos anteriores para que se soporten estos nuevos requerimientos de
+herramientas para poder llevar a cabo una tarea, teniendo en cuenta que para
+las herramientas reemplazables alcanza con que el integrante satisfaga la
+necesidad de alguna de las herramientas indicadas para cumplir dicho
+requerimiento.
+*/
+
+
+/*
+c. Explicar a qué se debe que esto sea difícil o fácil de incorporar.
+*/
